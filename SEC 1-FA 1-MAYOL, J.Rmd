@@ -1,0 +1,65 @@
+---
+title: "SEC 1-FA 1-MAYOL, J."
+author: "MAYOL, JOSE RAPHAEL J."
+date: "2025-02-01"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+
+CyTOF (Cytometry by Time-Of-Flight) is a technique used in single-cell analysis to measure the expression levels of various proteins on or in individual cells. In practice, this tool quantifies the presence in single cells of certain target antibodies tagged with metal isotopes for detection. The data obtained from the CyTOF represents the abundance of 35 different antibodies in 50,000 distinct observations of single cells. Negative values will eventually appear which correspond to estimations of zeroes in the CyTOF, although they should still be treated as how they appeared in the data. This study will be divided into two parts: an investigation of the antibody 'NKp30' and a Q-Q plot comparison of the antibodies 'NKp30' and 'KIR3DL1.'
+
+To begin, we need to initialize the needed libraries as well as the csv file itself.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+options(tibble.print_min = 15)
+cytof = read.csv("C:/Users/Joel Mayol/Documents/Year3/EXPLORATORY DATA ANALYSIS/FA1/cytof_one_experiment.csv")
+head(cytof)
+```
+
+# I. Exploring NKp30
+
+This section investigates the 'NKp30' column and is further divided into two subsections: the ECDF and Density Estimate.
+
+## ECDF
+
+```{r}
+nkp30.gg = ggplot(cytof, aes(x = NKp30))
+nkp30.gg + stat_ecdf() +
+  xlab("NKp30") +
+  ylab("ecdf") +
+  ggtitle("Empirical CDF of NKp30")
+```
+
+Looking at the graph, two long tails can be observed at around the minimum and maximum values. This suggests that the observations for the NKp30 antibody does not follow a normal distribution. At around the '3' value, the cumulative probability starts to increase rapidly, indicating a high frequency for the said area. The graph starts to slow down slightly at '4' then plateaus after '6', signalling almost no presence for the values thereafter. This may signify that the mean is in the 3-5 range.
+
+## Density Estimate
+
+```{r}
+ggplot(cytof, aes(x = NKp30)) +
+  geom_density(adjust = 0.0001) +
+  geom_rug(aes(y = 0), sides = "b",
+           position = position_jitter(height = 0))
+```
+
+The values for NKp30 does not appear to have a normal distribution. Moreover, a minuscule amount of cells exhibit either extremely low or extremely high NKp30 expression. The distribution also peaks at the '4' mark and has a long tail especially on the right. These are all in line with the observations made in the previous ECDF. An additional insight made from the Density Estimate is that the behavior around the middle part is particularly even and symmetrical, if the right-handed skewness is ignored.
+
+# II. NKp30-KIR3DL1 Comparison
+
+## Q-Q Plot
+
+```{r}
+qq.df <- as.data.frame(qqplot(cytof$NKp30, cytof$KIR3DL1, plot.it = FALSE))
+ggplot(qq.df, aes(x = x, y = y)) +
+  geom_point() +
+  xlab("NKp30") + ylab("KIR3DL1") +
+  labs(title = "Q-Q Plot")
+```
+
+Since the Q-Q plot for NKp30 and KIR3DL1 deviates significantly from a straight line, then this suggests that the data is not distributed normally. Additionally, there is a sudden inflection point just before the '4' mark. This strongly indicates that the relationship between the two antibodies is non-linear. Moreover, the sharp upward curvature suggests that KIR3DL1 has higher extreme values than NKp30 or has more outliers in the uppermost range. All in all, the data for NKp30 and KIR3DL1 seem to follow different distributions.
